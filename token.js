@@ -31,7 +31,7 @@ app.get('/loginsuccess.html', (req, res) => {
             redirect_uri: redirecturi,
         }),
         headers: {
-            'Authorization': 'Basic ' + Buffer.from(clientid + ':' + clientsecret).toString('base64'),
+            'Authorization': 'Basic ' + (new Buffer.from(clientid + ':' + clientsecret).toString('base64')),
 
             'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -40,11 +40,14 @@ app.get('/loginsuccess.html', (req, res) => {
         // Access token and refresh token are in the response data
         const accessToken = response.data.access_token;
         const refreshToken = response.data.refresh_token;
+        const expires = response.data.expires_in;
+        
 
         // Use the access token to make Spotify API requests or store it for future use
         // You can also store the refresh token for refreshing the access token
         console.log('Access Token:', accessToken);
         console.log('Refresh Token:', refreshToken);
+        console.log('Expires In: ', expires);
 
         res.redirect('http://127.0.0.1:5550/loginsuccess.html');
     })
@@ -55,6 +58,6 @@ app.get('/loginsuccess.html', (req, res) => {
 });
 
 //Listens for any server pings on port 5550, allows line 12 to work
-app.listen(5550, () => {
-    console.log('ShepStatsv2 listening on port 5550');
+app.listen(5550, (host, port) => {
+    console.log('ShepStatsv2 listening on port http://%s%s', host, port);
 });
