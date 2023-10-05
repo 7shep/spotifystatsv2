@@ -1,24 +1,27 @@
+//Imports
 const express = require('express');
 const axios = require('axios');
 const querystring = require('querystring');
 
+//Spotify API
 const clientid = '23891eeee9ee42b8aaf68a066f0d525d';
 const clientsecret = '013fc4f179c849e389414f69dc73f619';
-
 const redirecturi = 'http://127.0.0.1:5550/loginsuccess.html';
 
 const app = express();
 
+//When the express server detects the user being redirected to loginsuccess.html
 app.get('/loginsuccess.html', (req, res) => {
     // Check if the request contains an authorization code
     const code = req.query.code;
 
+    // Making sure the user has an Authorization code
     if (!code) {
         res.status(400).send('Authorization code not found');
         return;
     }
 
-    // Exchange the authorization code for an access token and refresh token
+    //Sends a 'POST' request to access the users access token and refresh token!!
     axios({
         method: 'post',
         url: 'https://accounts.spotify.com/api/token',
@@ -51,6 +54,7 @@ app.get('/loginsuccess.html', (req, res) => {
     });
 });
 
+//Listens for any server pings on port 5550, allows line 12 to work
 app.listen(5550, () => {
     console.log('ShepStatsv2 listening on port 5550');
 });
