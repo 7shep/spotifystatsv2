@@ -9,48 +9,49 @@ const redirecturi = 'http://127.0.0.1:5550/loginsuccess.html';
 
 const app = express();
 
-app.get('/loginsuccess.html', (req, res) => {
+app.get('/loginsuccess.html', async (req, res) => {
+  try {
     // Check if the request contains an authorization code
-    const code = req.query.code;
+    const code = req.query.code || null;
+    const state = req.query.state || null;
 
-    if (!code) {
-        res.status(400).send('Authorization code not found');
-        return;
-    }
-
-    // Exchange the authorization code for an access token and refresh token
-    axios({
-        method: 'post',
+    if (state === null) {
+      res.redirect('/#' + querystring.stringify({ error: 'state_mismatch' }));
+    } else {
+      const authOptions = {
         url: 'https://accounts.spotify.com/api/token',
+        method: 'post', // Use 'post' method
         data: querystring.stringify({
-            grant_type: 'authorization_code',
-            code: code,
-            redirect_uri: redirecturi,
+          code: code,
+          redirect_uri: redirecturi,
+          grant_type: 'authorization_code'
         }),
         headers: {
-            'Authorization': 'Basic ' + Buffer.from(clientid + ':' + clientsecret).toString('base64'),
+          'Authorization': 'Basic ' + Buffer.from(clientid + ':' + clientsecret).toString('base64'),
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      };
 
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-    })
-    .then(response => {
-        // Access token and refresh token are in the response data
-        const accessToken = response.data.access_token;
-        const refreshToken = response.data.refresh_token;
+      const response = await axios(authOptions);
 
-        // Use the access token to make Spotify API requests or store it for future use
-        // You can also store the refresh token for refreshing the access token
-        console.log('Access Token:', accessToken);
-        console.log('Refresh Token:', refreshToken);
-
-        res.redirect('http://127.0.0.1:5550/loginsuccess.html');
-    })
-    .catch(error => {
-        console.error('Error exchanging authorization code for access token:', error);
-        res.status(500).send('Error exchanging authorization code for access token');
-    });
-});
+      if (response.status === 200) {
+        const access_token = response.data.access_token;
+        console.log(access_token);
+        res.send({ 'access_token': access_token });
+      } else {
+        res.status(response.status).send('Error');
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }});
 
 app.listen(5550, () => {
-    console.log('ShepStatsv2 listening on port 5550');
+  console.log('ShepStatsv2 listening on port 5550');
 });
+
+app.get('/', (req, res) => {
+    // Handle requests to the root path here\
+    res.send('Welcome to ShepStatsv2');
+  });
