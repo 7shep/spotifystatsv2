@@ -1,13 +1,12 @@
-const express = require('express');
-const axios = require('axios');
-const querystring = require('querystring');
+var express = require('express');
+var axios = require('axios');
+var querystring = require('querystring');
+var clientid = '23891eeee9ee42b8aaf68a066f0d525d';
+var clientsecret = '013fc4f179c849e389414f69dc73f619';
+var redirecturi = 'http://127.0.0.1:5550/loginsuccess.html';
+var SpotifyWebApi = require('spotify-web-api-node');
 
-const clientid = '23891eeee9ee42b8aaf68a066f0d525d';
-const clientsecret = '013fc4f179c849e389414f69dc73f619';
-
-const redirecturi = 'http://127.0.0.1:5550/loginsuccess.html';
-
-const app = express();
+var app = express();
 
 app.get('/loginsuccess.html', async (req, res) => {
   try {
@@ -51,7 +50,3 @@ app.listen(5550, () => {
   console.log('ShepStatsv2 listening on port 5550');
 });
 
-app.get('/', (req, res) => {
-    // Handle requests to the root path here\
-    res.send('Welcome to ShepStatsv2');
-  });
