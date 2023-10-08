@@ -1,27 +1,35 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const fetch = require('node-fetch');
-const querystring = require('querystring');
-const app = express();
-const port = 5500; // You can choose any port you like
+var express = require('express');
+var bodyParser = require('body-parser');
+var fetch = require('node-fetch');
+var querystring = require('querystring');
+var app = express();
+var port = 5500; // You can choose any port you like
+var fs = require('fs');
+
+
+var index = fs.readFileSync('index.html');
+var login = fs.readFileSync('loginsuccess.html');
+var style = fs.readFileSync('style.css');
+var final = fs.readFileSync('final.html');
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Spotify API credentials
-const CLIENT_ID = 'your_client_id';
-const CLIENT_SECRET = 'your_client_secret';
-const REDIRECT_URI = 'http://127.0.0.1:5500/loginsuccess.html'; // Update the URL to match your actual redirect URI
+var CLIENT_ID = 'your_client_id';
+var CLIENT_SECRET = 'your_client_secret';
+var REDIRECT_URI = 'http://127.0.0.1:5500/loginsuccess.html'; // Update the URL to match your actual redirect URI
 
 // Store the access token temporarily (in-memory)
 let access_token = '';
 
 // Redirect user to Spotify login
 // server.js
-app.get('/token', (req, res) => {
+app.get('/loginsuccess.html', (req, res) => {
     // Redirect the user to the Spotify login URL
-    const scope = 'user-read-private user-read-email'; // Define your desired scope
-    const state = 'some-random-state'; // Generate a unique state
-    const authorizeURL = `https://accounts.spotify.com/authorize?` +
+    var scope = 'user-read-private user-read-email'; // Define your desired scope
+    var state = 'some-random-state'; // Generate a unique state
+    var authorizeURL = `https://accounts.spotify.com/authorize?` +
       querystring.stringify({
         response_type: 'code',
         client_id: CLIENT_ID,
@@ -35,10 +43,10 @@ app.get('/token', (req, res) => {
 
 // Callback route to handle the response from Spotify
 app.get('/callback', async (req, res) => {
-  const code = req.query.code || null;
+  var code = req.query.code || null;
 
   // Make a POST request to Spotify to exchange the code for an access token
-  const authOptions = {
+  var authOptions = {
     method: 'POST',
     headers: {
       'Authorization': 'Basic ' + (new Buffer.from(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64')),
@@ -51,8 +59,8 @@ app.get('/callback', async (req, res) => {
     }),
   };
 
-  const tokenResponse = await fetch('https://accounts.spotify.com/api/token', authOptions);
-  const tokenData = await tokenResponse.json();
+  var tokenResponse = await fetch('https://accounts.spotify.com/api/token', authOptions);
+  var tokenData = await tokenResponse.json();
 
   // Store the access token (you might want to store it securely)
   access_token = tokenData.access_token;
@@ -66,16 +74,17 @@ app.get('/user-data', async (req, res) => {
     return res.status(401).json({ error: 'Access token not available' });
   }
 
-  const userResponse = await fetch('https://api.spotify.com/v1/me', {
+  var userResponse = await fetch('https://api.spotify.com/v1/me', {
     headers: {
       'Authorization': `Bearer ${access_token}`,
     },
   });
 
-  const userData = await userResponse.json();
+  var userData = await userResponse.json();
   res.json(userData);
 });
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
