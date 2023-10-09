@@ -1,38 +1,40 @@
-/**
- * This is an example of a basic node.js script that performs
- * the Authorization Code oAuth2 flow to authenticate against
- * the Spotify Accounts.
- *
- * For more information, read
- * https://developer.spotify.com/web-api/authorization-guide/#authorization_code_flow
- */
-
+//Imports
 var express = require('express'); // Express web server framework
 var request = require('request'); // "Request" library
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var fs = require('fs');
 
-
+//Spotify API Shananigans
 var client_id = '23891eeee9ee42b8aaf68a066f0d525d'; // Your client id
 var client_secret = '013fc4f179c849e389414f69dc73f619'; // Your secret
 var redirect_uri = 'http://127.0.0.1:5500/callback'; // Your redirect uri
 
+//Server sending my website files
 var index = fs.readFileSync('index.html');
 var style = fs.readFileSync('style.css');
 var login = fs.readFileSync('loginsuccess.html');
 var final = fs.readFileSync('final.html');
-
+var finalcss = fs.readFileSync('final.css');
+var topsongs = fs.readFileSync('topsongs.html');
+var playlists = fs.readFileSync('playlists.html');
+var clientjs = fs.readFileSync('client.js');
 
 var app = express();
 app.use(cookieParser());
+
+let accessToken = '';
+
+
+
+//Sends index.html to the user.
 app.get('/', (req, res) => {
 
     res.set('Content-Type', 'text/html');
     res.send(index);
 
 });
-
+//Sends index.html to the user.
 app.get('/index.html', (req, res) => {
 
     res.set('Content-Type', 'text/html');
@@ -40,6 +42,7 @@ app.get('/index.html', (req, res) => {
 
 });
 
+//Function for my access token.
 var generateRandomString = function(length) {
     var text = '';
     var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -52,6 +55,7 @@ var generateRandomString = function(length) {
 
 var stateKey = 'spotify_auth_state';
 
+//After the user clicks "Login to Spotify", sends user to spotify
 app.get('/loginsuccess.html', function(req, res) {
 
     var state = generateRandomString(16);
@@ -69,6 +73,7 @@ app.get('/loginsuccess.html', function(req, res) {
       }));
   });
 
+//Downloads style.css for the user so the website looks better.
 app.get('/style.css', (req, res) => {
 
   res.set('Content-Type', 'text/css');
@@ -76,10 +81,8 @@ app.get('/style.css', (req, res) => {
 
 })
 
+//After the user logs into Spotify, this post request is sent. I will explain this better during my presentation
 app.get('/callback', function(req, res) {
-
-  // your application requests refresh and access tokens
-  // after checking the state parameter
 
   var code = req.query.code || null;
   var state = req.query.state || null;
@@ -109,7 +112,8 @@ app.get('/callback', function(req, res) {
       if (!error && response.statusCode === 200) {
 
         var access_token = body.access_token,
-            refresh_token = body.refresh_token;
+        refresh_token = body.refresh_token;
+
 
         var options = {
           url: 'https://api.spotify.com/v1/me',
@@ -119,7 +123,8 @@ app.get('/callback', function(req, res) {
 
         // use the access token to access the Spotify Web API
         request.get(options, function(error, response, body) {
-          console.log(body);
+          //console.log(body);
+          console.log('test');
         });
 
         // we can also pass the token to the browser to make requests from there
@@ -140,17 +145,44 @@ app.get('/callback', function(req, res) {
   
 });
 
+//Sends the user final.html
 app.get('/final.html', (req, res) => {
 
     res.set('Content-Type', 'text/html');
     res.send(final);
 
     console.log('EVAN D LIKES CHILDREN!!');
+    accessToken = req.query.access_token;
+    
+});
 
-    var accessToken = req.query.access_token;
-    console.log(accessToken);
+
+//Sends the user final.css
+app.get('/final.css', (req, res) => {
+
+  res.set('Content-Type', 'text/css');
+  res.send(finalcss);
+
+
+
+
 
 })
 
-console.log('Listening');
+app.get('/makeplaylist', (req, res) => {
+
+  console.log('recieved');
+
+})
+
+app.get('/playlists.html', (req, res) => {
+
+  res.set('Content-Type', 'text/html');
+  res.send(playlists);
+  console.log(accessToken);
+})
+
+
+//Express listens to port 5500 
+console.log('Listening')
 app.listen(5500);
