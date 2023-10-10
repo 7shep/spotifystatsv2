@@ -4,6 +4,8 @@ var request = require('request'); // "Request" library
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var fs = require('fs');
+var fetch = require('fetch');
+
 
 //Spotify API Shananigans
 var client_id = '23891eeee9ee42b8aaf68a066f0d525d'; // Your client id
@@ -18,13 +20,11 @@ var final = fs.readFileSync('final.html');
 var finalcss = fs.readFileSync('final.css');
 var topsongs = fs.readFileSync('topsongs.html');
 var playlists = fs.readFileSync('playlists.html');
-var clientjs = fs.readFileSync('client.js');
 
 var app = express();
 app.use(cookieParser());
 
 let accessToken = '';
-
 
 
 //Sends index.html to the user.
@@ -62,7 +62,7 @@ app.get('/loginsuccess.html', function(req, res) {
     res.cookie(stateKey, state);
   
     // your application requests authorization
-    var scope = 'user-read-private user-read-email';
+    var scope = 'user-read-private user-read-email playlist-modify-public playlist-modify-private';
     res.redirect('https://accounts.spotify.com/authorize?' +
       querystring.stringify({
         response_type: 'code',
@@ -151,8 +151,10 @@ app.get('/final.html', (req, res) => {
     res.set('Content-Type', 'text/html');
     res.send(final);
 
-    console.log('EVAN D LIKES CHILDREN!!');
     accessToken = req.query.access_token;
+    console.log(accessToken);
+
+
     
 });
 
@@ -169,18 +171,67 @@ app.get('/final.css', (req, res) => {
 
 })
 
-app.get('/makeplaylist', (req, res) => {
-
-  console.log('recieved');
-
-})
 
 app.get('/playlists.html', (req, res) => {
 
   res.set('Content-Type', 'text/html');
   res.send(playlists);
   console.log(accessToken);
+
+
+  const playlistResponse = createPlaylist(accessToken, 'SHEPSTATSv2 PLAYLIST');
+
+    if (playlistResponse.status === 201) {
+        const playlistData = playlistResponse.json();
+        const playlistId = playlistData.id;
+
+        // Add 20 songs to the playlist
+        const trackUris = ['spotify:track:track_id_1', 'spotify:track:track_id_2', /* Add more track URIs here */];
+
+        addTracksToPlaylist(accessToken, playlistId, trackUris);
+
+        // Send a success response
+        res.status(200).json({ message: 'Playlist created and tracks added successfully!' });
+    } else {
+        res.status(500).json({ message: 'Failed to create the playlist.' });
+    }
+
 })
+
+async function createPlaylist(accessToken, playlistName) {
+  const url = 'https://api.spotify.com/v1/me/playlists';
+  const bodyData = {
+      name: playlistName,
+      public: false, // You can change the privacy settings as needed
+  };
+
+  const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bodyData),
+  });
+
+  return response;
+}
+
+async function addTracksToPlaylist(accessToken, playlistId, trackUris) {
+  const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks`;
+  const bodyData = {
+      uris: trackUris,
+  };
+
+  await fetch(url, {
+      method: 'POST',
+      headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bodyData),
+  });
+}
 
 
 //Express listens to port 5500 
