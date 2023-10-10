@@ -4,7 +4,7 @@ var request = require('request'); // "Request" library
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
 var fs = require('fs');
-var fetch = require('fetch');
+
 
 
 //Spotify API Shananigans
@@ -25,8 +25,8 @@ var app = express();
 app.use(cookieParser());
 
 let accessToken = '';
-
-
+let userid = '';
+let playlistlink = '';
 //Sends index.html to the user.
 app.get('/', (req, res) => {
 
@@ -123,8 +123,10 @@ app.get('/callback', function(req, res) {
 
         // use the access token to access the Spotify Web API
         request.get(options, function(error, response, body) {
-          //console.log(body);
-          console.log('test');
+          console.log(body);
+          //userid = body.id;
+          console.log(body.id);
+          userid = body.id;
         });
 
         // we can also pass the token to the browser to make requests from there
@@ -165,73 +167,78 @@ app.get('/final.css', (req, res) => {
   res.set('Content-Type', 'text/css');
   res.send(finalcss);
 
-
-
-
-
 })
 
 
 app.get('/playlists.html', (req, res) => {
-
   res.set('Content-Type', 'text/html');
   res.send(playlists);
   console.log(accessToken);
+  console.log(userid);
 
-
-  const playlistResponse = createPlaylist(accessToken, 'SHEPSTATSv2 PLAYLIST');
-
-    if (playlistResponse.status === 201) {
-        const playlistData = playlistResponse.json();
-        const playlistId = playlistData.id;
-
-        // Add 20 songs to the playlist
-        const trackUris = ['spotify:track:track_id_1', 'spotify:track:track_id_2', /* Add more track URIs here */];
-
-        addTracksToPlaylist(accessToken, playlistId, trackUris);
-
-        // Send a success response
-        res.status(200).json({ message: 'Playlist created and tracks added successfully!' });
-    } else {
-        res.status(500).json({ message: 'Failed to create the playlist.' });
-    }
-
-})
-
-async function createPlaylist(accessToken, playlistName) {
-  const url = 'https://api.spotify.com/v1/me/playlists';
-  const bodyData = {
-      name: playlistName,
-      public: false, // You can change the privacy settings as needed
+  // Define the playlist data you want to create
+  const playlistData = {
+    name: 'Shep Stats v2', // Name of the new playlist
+    description: 'SHEPSTATSV2 RECOMMENDED PLAYLIST',
+    public: false, // Set to true if you want the playlist to be public
   };
 
-  const response = await fetch(url, {
-      method: 'POST',
+  // Create the POST request options
+ // Create the POST request options
+ const requestOptions = {
+  url: `https://api.spotify.com/v1/users/${userid}/playlists`, // Replace {YOUR_USER_ID} with your Spotify user ID
+  headers: {
+    'Authorization': `Bearer ${accessToken}`,
+    'Content-Type': 'application/json',
+  },
+  json: playlistData,
+};
+
+// Make the POST request to create the playlist
+request.post(requestOptions, function (error, response, body) {
+  if (!error && response.statusCode === 201) {
+    // Playlist creation was successful
+    console.log('Playlist created:', body);
+    const trackUris = [
+      'spotify:track:0zLClc0emc6qUeV1p5nc99', 'spotify:track:1udwFobQ1JoOdWPQrp2b6u', 'spotify:track:5wG3HvLhF6Y5KTGlK0IW3J', 'spotify:track:4SCnCPOUOUXUmCX2uHb3r7', 'spotify:track:7vgTNTaEz3CsBZ1N4YQalM', 'spotify:track:3MWlVSkoLS1e66nlZ2tuWJ', 'spotify:track:1vHzUmqpA2tgO1OGtBuItX', 'spotify:track:4uu7gKd1PffC7QEMcMk0Ro', 'spotify:track:1oOEkBNp4zWnkD7nWjJdog', 'spotify:track:4S4QJfBGGrC8jRIjJHf1Ka'
+    ];
+
+    // Create the POST request options to add tracks to the playlist
+    const addTracksOptions = {
+      url: `https://api.spotify.com/v1/playlists/${body.id}/tracks`, // Use body.id to get the playlist ID
       headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(bodyData),
+      json: {
+        uris: trackUris,
+      },
+    };
+
+    // Make the POST request to add tracks to the playlist
+    request.post(addTracksOptions, (addError, addResponse, addBody) => {
+      if (!addError && addResponse.statusCode === 201) {
+        // Tracks added successfully
+        console.log('Tracks added to the playlist:', addBody);
+        //console.log(body.external_urls.spotify);
+        playlistlink = body.external_urls.spotify;
+        //console.log(playlistlink);
+      } else {
+        // Failed to add tracks
+        console.error('Error adding tracks to the playlist:', addError);
+        
+      }
+    });
+  } else {
+    // Playlist creation failed
+    console.error('Error creating playlist:', error);
+    res.status(500).json({ message: 'Failed to create the playlist.' });
+  }
   });
 
-  return response;
-}
+  
 
-async function addTracksToPlaylist(accessToken, playlistId, trackUris) {
-  const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks`;
-  const bodyData = {
-      uris: trackUris,
-  };
-
-  await fetch(url, {
-      method: 'POST',
-      headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bodyData),
-  });
-}
+});
 
 
 //Express listens to port 5500 

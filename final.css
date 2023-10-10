@@ -59,4 +59,10 @@ button {
     top: 50%;
     transform: translate(-50%, -50%);
     margin-top: 20px;
+    background: #ffffff;
+}
+
+body {
+    background: rgb(0,0,0);
+    background: linear-gradient(90deg, rgba(0,0,0,1) 6%, rgba(8,31,135,1) 32%, rgba(149,7,129,1) 59%, rgba(0,212,255,1) 100%);
 }
