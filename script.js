@@ -6,7 +6,6 @@ var cookieParser = require('cookie-parser');
 var fs = require('fs');
 
 
-
 //Spotify API Shananigans
 var client_id = '23891eeee9ee42b8aaf68a066f0d525d'; // Your client id
 var client_secret = '013fc4f179c849e389414f69dc73f619'; // Your secret
@@ -19,7 +18,9 @@ var login = fs.readFileSync('loginsuccess.html');
 var final = fs.readFileSync('final.html');
 var finalcss = fs.readFileSync('final.css');
 var topsongs = fs.readFileSync('topsongs.html');
-var playlists = fs.readFileSync('playlists.html');
+//var playlists = fs.readFileSync('playlists.html');
+
+
 
 var app = express();
 app.use(cookieParser());
@@ -88,7 +89,7 @@ app.get('/callback', function(req, res) {
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
 
-  if (state === null || state !== storedState) {
+  if (state == null || state !== storedState) {
     res.redirect('/#' +
       querystring.stringify({
         error: 'state_mismatch'
@@ -109,7 +110,7 @@ app.get('/callback', function(req, res) {
     };
 
     request.post(authOptions, function(error, response, body) {
-      if (!error && response.statusCode === 200) {
+      if (!error && response.statusCode == 200) {
 
         var access_token = body.access_token,
         refresh_token = body.refresh_token;
@@ -172,21 +173,19 @@ app.get('/final.css', (req, res) => {
 
 app.get('/playlists.html', (req, res) => {
   res.set('Content-Type', 'text/html');
-  res.send(playlists);
   console.log(accessToken);
   console.log(userid);
 
   // Define the playlist data you want to create
   const playlistData = {
     name: 'Shep Stats v2', // Name of the new playlist
-    description: 'SHEPSTATSV2 RECOMMENDED PLAYLIST',
+    description: 'SHEPSTATSV2 RECOMMENDED PLAYLIST', // Description of playlist
     public: false, // Set to true if you want the playlist to be public
   };
 
-  // Create the POST request options
  // Create the POST request options
  const requestOptions = {
-  url: `https://api.spotify.com/v1/users/${userid}/playlists`, // Replace {YOUR_USER_ID} with your Spotify user ID
+  url: `https://api.spotify.com/v1/users/${userid}/playlists`,
   headers: {
     'Authorization': `Bearer ${accessToken}`,
     'Content-Type': 'application/json',
@@ -196,7 +195,7 @@ app.get('/playlists.html', (req, res) => {
 
 // Make the POST request to create the playlist
 request.post(requestOptions, function (error, response, body) {
-  if (!error && response.statusCode === 201) {
+  if (!error && response.statusCode == 201) {
     // Playlist creation was successful
     console.log('Playlist created:', body);
     const trackUris = [
@@ -217,12 +216,16 @@ request.post(requestOptions, function (error, response, body) {
 
     // Make the POST request to add tracks to the playlist
     request.post(addTracksOptions, (addError, addResponse, addBody) => {
-      if (!addError && addResponse.statusCode === 201) {
+      if (!addError && addResponse.statusCode == 201) {
         // Tracks added successfully
         console.log('Tracks added to the playlist:', addBody);
         //console.log(body.external_urls.spotify);
         playlistlink = body.external_urls.spotify;
-        //console.log(playlistlink);
+        console.log(playlistlink);
+        //res.send(playlistlink);
+        res.redirect(playlistlink);
+        
+
       } else {
         // Failed to add tracks
         console.error('Error adding tracks to the playlist:', addError);
@@ -236,9 +239,37 @@ request.post(requestOptions, function (error, response, body) {
   }
   });
 
-  
+
 
 });
+
+app.get('/topsongs.html', (req, res) => {
+
+  res.set('Content-Type', 'text/html');
+  
+  var time = 'medium_term';
+  const requestOptions = {
+    url: `https://api.spotify.com/v1/me/top/tracks?time_range=${time}&limit=10`, // Include the time_range and limit parameters
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  }
+  
+  
+
+  request.get(requestOptions, (error, response, body) => {
+    if (!error && response.statusCode == 200) {
+      var responsesongs = JSON.parse(body);
+
+      console.log(responsesongs);
+      res.send(topsongs);
+    } else {
+      console.error("Error: ", error);
+    }
+  })
+
+})
 
 
 //Express listens to port 5500 

@@ -7,6 +7,7 @@
     "fetch": "^1.1.0",
     "fs": "^0.0.1-security",
     "node-fetch": "^3.3.2",
+    "open": "^9.1.0",
     "request": "^2.88.2",
     "spotify-web-api-node": "^5.0.2"
   }
