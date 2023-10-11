@@ -21,13 +21,16 @@ var topsongs = fs.readFileSync('topsongs.html');
 //var playlists = fs.readFileSync('playlists.html');
 
 
-
+//Init express
 var app = express();
 app.use(cookieParser());
 
+//Global variables, to be called later on
 let accessToken = '';
 let userid = '';
 let playlistlink = '';
+
+
 //Sends index.html to the user.
 app.get('/', (req, res) => {
 
@@ -35,6 +38,7 @@ app.get('/', (req, res) => {
     res.send(index);
 
 });
+
 //Sends index.html to the user.
 app.get('/index.html', (req, res) => {
 
