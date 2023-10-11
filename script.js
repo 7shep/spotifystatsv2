@@ -203,8 +203,9 @@ request.post(requestOptions, function (error, response, body) {
     // Playlist creation was successful
     console.log('Playlist created:', body);
     const trackUris = [
-      'spotify:track:0zLClc0emc6qUeV1p5nc99', 'spotify:track:1udwFobQ1JoOdWPQrp2b6u', 'spotify:track:5wG3HvLhF6Y5KTGlK0IW3J', 'spotify:track:4SCnCPOUOUXUmCX2uHb3r7', 'spotify:track:7vgTNTaEz3CsBZ1N4YQalM', 'spotify:track:3MWlVSkoLS1e66nlZ2tuWJ', 'spotify:track:1vHzUmqpA2tgO1OGtBuItX', 'spotify:track:4uu7gKd1PffC7QEMcMk0Ro', 'spotify:track:1oOEkBNp4zWnkD7nWjJdog', 'spotify:track:4S4QJfBGGrC8jRIjJHf1Ka'
+      'spotify:track:0zLClc0emc6qUeV1p5nc99','spotify:track:2QpGZOhTCHHiKmpSO9FW4h','spotify:track:5wG3HvLhF6Y5KTGlK0IW3J','spotify:track:50a8bKqlwDEqeiEknrzkTO','spotify:track:7vgTNTaEz3CsBZ1N4YQalM','spotify:track:1ZM8toCOlnfBKJdvR8GqUq','spotify:track:1vHzUmqpA2tgO1OGtBuItX','spotify:track:7rElK9aQ3IKPuqjjThwnLm','spotify:track:1oOEkBNp4zWnkD7nWjJdog','spotify:track:3A4cpTBPaIQdtPFb5JxtaX'
     ];
+    
 
     // Create the POST request options to add tracks to the playlist
     const addTracksOptions = {
